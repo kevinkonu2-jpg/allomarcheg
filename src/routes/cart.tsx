@@ -39,6 +39,7 @@ function Cart() {
     clearCart();
     toast.success("Order placed!");
     navigate({ to: "/orders" });
+    return undefined;
   };
 
   return (

@@ -41,6 +41,7 @@ function Auth() {
       toast.success("Check your email to confirm your account.");
       setMode("in");
     }
+    return undefined;
   };
 
   return (

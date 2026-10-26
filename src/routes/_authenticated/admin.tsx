@@ -45,6 +45,7 @@ function Admin() {
     toast.success(`Withdrawal of ${fmt(n)} requested`);
     setAmount("");
     load();
+    return undefined;
   };
 
   const cards = [
