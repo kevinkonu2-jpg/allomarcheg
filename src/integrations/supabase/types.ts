@@ -83,6 +83,7 @@ export type Database = {
           category: string
           city_target: string | null
           created_at: string
+          demo_key: string | null
           description: string | null
           id: string
           image_url: string | null
@@ -96,6 +97,7 @@ export type Database = {
           category?: string
           city_target?: string | null
           created_at?: string
+          demo_key?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
@@ -109,6 +111,7 @@ export type Database = {
           category?: string
           city_target?: string | null
           created_at?: string
+          demo_key?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
@@ -232,6 +235,10 @@ export type Database = {
     }
     Functions: {
       admin_stats: { Args: never; Returns: Json }
+      grant_admin: {
+        Args: { _email: string; _share?: number }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
