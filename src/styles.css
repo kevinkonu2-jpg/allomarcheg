@@ -50,8 +50,8 @@
 }
 
 :root {
-  --radius: 0.875rem;
-  --background: oklch(0.975 0.012 85);
+  --radius: 0.5rem;
+  --background: oklch(0.985 0.002 160);
   --foreground: oklch(0.22 0.03 160);
   --card: oklch(0.995 0.005 85);
   --card-foreground: oklch(0.22 0.03 160);
@@ -59,7 +59,7 @@
   --popover-foreground: oklch(0.22 0.03 160);
   --primary: oklch(0.36 0.07 160);
   --primary-foreground: oklch(0.97 0.015 85);
-  --secondary: oklch(0.93 0.025 85);
+  --secondary: oklch(0.95 0.014 160);
   --secondary-foreground: oklch(0.28 0.05 160);
   --muted: oklch(0.94 0.015 85);
   --muted-foreground: oklch(0.5 0.025 160);
@@ -100,7 +100,7 @@
   }
   h1, h2, h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
   }
 }
 

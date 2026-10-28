@@ -1,8 +1,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { CITIES, validCity } from "@/lib/marketplace";
 
-export const CITIES = ["Paris", "Boston", "Lomé"] as const;
+export { CITIES };
 
 export type CartItem = {
   product_id: string;
@@ -31,16 +32,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [restored, setRestored] = useState(false);
 
   useEffect(() => {
-    const c = localStorage.getItem("amg_city");
-    if (c) setCityState(c);
-    const k = localStorage.getItem("amg_cart");
-    if (k) setCart(JSON.parse(k));
+    try {
+      const c = localStorage.getItem("amg_city");
+      const activeCity = validCity(c) ? c : "Paris";
+      setCityState(activeCity);
+      const k = localStorage.getItem("amg_cart");
+      const saved: unknown = k ? JSON.parse(k) : [];
+      if (Array.isArray(saved)) setCart(saved.filter((i): i is CartItem => !!i && typeof i.product_id === "string" && typeof i.title === "string" && typeof i.price === "number" && i.city === activeCity && Number.isInteger(i.quantity) && i.quantity > 0));
+    } catch { /* Ignore unavailable or corrupted browser storage. */ }
+    setRestored(true);
   }, []);
   useEffect(() => {
-    localStorage.setItem("amg_cart", JSON.stringify(cart));
-  }, [cart]);
+    if (!restored) return;
+    try { localStorage.setItem("amg_cart", JSON.stringify(cart)); } catch { /* In-memory basket remains usable. */ }
+  }, [cart, restored]);
 
   useEffect(() => {
     const load = async (u: User | null) => {
@@ -58,8 +66,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setCity = (c: string) => {
+    if (!validCity(c)) return;
     setCityState(c);
-    localStorage.setItem("amg_city", c);
+    try { localStorage.setItem("amg_city", c); } catch { /* City selection still works. */ }
     // Prevent cross-city deliveries: drop local items from other cities
     setCart((prev) => prev.filter((i) => i.city === c));
   };
@@ -92,4 +101,4 @@ export function useStore() {
 }
 
 export const fmt = (n: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR" }).format(n);
+  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(n);
