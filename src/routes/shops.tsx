@@ -7,11 +7,11 @@ import { ProductCard, type Product } from "@/components/ProductCard";
 
 export const Route = createFileRoute("/shops")({
   head: () => ({
-    meta: [
-      { title: "Local shops — Allô Marché Global" },
-      { name: "description", content: "Browse independent shops in your delivery city." },
-      { property: "og:title", content: "Local shops — Allô Marché Global" },
-      { property: "og:description", content: "Independent city shops delivering locally." },
+    meta: [{ property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" },
+      { title: "Boutiques locales — Allô Marché Global" },
+      { name: "description", content: "Découvrez les boutiques indépendantes de votre ville." },
+      { property: "og:title", content: "Boutiques locales — Allô Marché Global" },
+      { property: "og:description", content: "Les commerces de votre ville et leurs produits locaux." },
     ],
   }),
   component: Shops,
@@ -29,8 +29,8 @@ function Shops() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
-      <p className="flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-4 w-4" /> Showing shops that deliver in {city}</p>
-      <h1 className="mt-1 text-4xl">Local shops</h1>
+      <p className="flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-4 w-4" /> Boutiques livrant à {city}</p>
+      <h1 className="mt-1 text-4xl">Boutiques locales</h1>
       <div className="mt-10 space-y-14">
         {shops.map((s) => (
           <section key={s.id}>
@@ -41,7 +41,7 @@ function Shops() {
             </div>
           </section>
         ))}
-        {shops.length === 0 && <p className="text-muted-foreground">No shops in {city} yet.</p>}
+        {shops.length === 0 && <p className="text-muted-foreground">Aucune boutique à {city} pour le moment.</p>}
       </div>
     </div>
   );
