@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/auth")({
 });
 
 function Auth() {
+  const { user, isAdmin } = useStore();
   const [mode, setMode] = useState<"in" | "up">("in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,6 +46,7 @@ function Auth() {
     return undefined;
   };
 
+  if (user) return <div className="mx-auto max-w-md px-4 py-16"><h1 className="text-4xl">Mon compte</h1><p className="mt-4 text-muted-foreground">{user.email}</p><div className="mt-6 flex flex-wrap gap-3"><Button onClick={() => navigate({ to: "/orders" })}>Mes commandes</Button>{isAdmin && <Button variant="secondary" onClick={() => navigate({ to: "/admin" })}>Espace admin</Button>}</div></div>;
   return (
     <div className="mx-auto flex max-w-md flex-col px-4 py-16">
       <h1 className="text-4xl">{mode === "in" ? "Connexion" : "Créer un compte"}</h1>
@@ -52,9 +55,9 @@ function Auth() {
         <div className="space-y-1"><Label htmlFor="e">E-mail</Label><Input id="e" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
         <div className="space-y-1"><Label htmlFor="p">Mot de passe</Label><Input id="p" type="password" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
         <Button type="submit" className="w-full" disabled={busy}>{mode === "in" ? "Se connecter" : "Créer mon compte"}</Button>
-        <button type="button" className="w-full text-sm text-muted-foreground hover:text-foreground" onClick={() => setMode(mode === "in" ? "up" : "in")}>
+        <Button type="button" variant="ghost" className="w-full whitespace-normal text-sm text-muted-foreground" onClick={() => setMode(mode === "in" ? "up" : "in")}>
           {mode === "in" ? "Pas de compte ? Inscrivez-vous" : "Déjà un compte ? Connectez-vous"}
-        </button>
+        </Button>
       </form>
     </div>
   );

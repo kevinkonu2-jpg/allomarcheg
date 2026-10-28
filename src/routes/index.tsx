@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ProductCard, type Product } from "@/components/ProductCard";
 import { useStore } from "@/lib/store";
 import hero from "@/assets/hero-market.jpg";
+import { Button } from "@/components/ui/button";
+import { matchesCity } from "@/lib/marketplace";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -26,26 +28,29 @@ function Index() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("Tout");
   const [source, setSource] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    supabase.from("products").select("*, shops(shop_name)").order("created_at").then(({ data }) => setProducts((data as Product[]) ?? []));
+    supabase.from("products").select("*, shops(shop_name)").order("created_at").then(({ data, error }) => { setProducts((data as Product[]) ?? []); setFailed(!!error); setLoading(false); });
   }, []);
 
   const visible = useMemo(() => products.filter((p) => {
-    if (!p.is_amazon_affiliate && p.city_target !== city) return false;
+    if (!matchesCity(p, city)) return false;
     if (source === "local" && p.is_amazon_affiliate) return false;
     if (source === "amazon" && !p.is_amazon_affiliate) return false;
     if (cat !== "Tout" && p.category !== cat) return false;
     return !q || (p.title + " " + (p.description ?? "")).toLowerCase().includes(q.toLowerCase());
   }), [products, city, q, cat, source]);
-  const cats = ["Tout", ...Array.from(new Set(products.map((p) => p.category)))];
+  const cats = ["Tout", ...Array.from(new Set(products.filter((p) => matchesCity(p, city)).map((p) => p.category)))];
+  useEffect(() => { setCat("Tout"); }, [city]);
 
   return (
     <div>
       <section className="relative overflow-hidden">
         <img src={hero} alt="Étal de marché avec épices, tissus et fleurs" width={1600} height={1008} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-hero-overlay" />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 md:py-28">
+        <div className="relative mx-auto max-w-7xl px-4 py-10 md:py-16">
           <p className="mb-3 text-sm uppercase tracking-[0.2em] text-accent">Livraison à {city}</p>
           <h1 className="max-w-2xl text-4xl font-semibold text-primary-foreground md:text-6xl">Allô Marché <em className="text-accent">Global</em></h1>
           <p className="mt-4 max-w-xl text-primary-foreground/80">Les boutiques de votre ville et une sélection Amazon, réunies dans votre marché.</p>
@@ -73,14 +78,14 @@ function Index() {
           </ToggleGroup>
           <div className="flex flex-wrap gap-2">
             {cats.map((c) => (
-              <button key={c} onClick={() => setCat(c)} className={`rounded-full border px-3 py-1 text-sm transition-colors ${cat === c ? "border-primary bg-primary text-primary-foreground" : "hover:bg-secondary"}`}>{c}</button>
+              <Button key={c} onClick={() => setCat(c)} size="sm" variant={cat === c ? "default" : "outline"}>{c}</Button>
             ))}
           </div>
         </div>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {visible.map((p) => <ProductCard key={p.id} p={p} />)}
         </div>
-        {visible.length === 0 && <p className="py-16 text-center text-muted-foreground">Aucun produit ne correspond à vos filtres.</p>}
+        {loading ? <p className="py-12 text-center text-muted-foreground">Chargement des produits…</p> : failed ? <p className="py-12 text-center text-destructive">Le catalogue est indisponible. Veuillez réessayer.</p> : visible.length === 0 && <p className="py-16 text-center text-muted-foreground">Aucun produit ne correspond à vos filtres.</p>}
       </section>
     </div>
   );
