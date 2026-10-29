@@ -14,3 +14,4 @@
 - Resolve generated product image identifiers in src/lib/product-images.ts so database examples can use bundled visuals.
 - Only an existing authenticated admin may grant another account the admin role through the database RPC; public signup creates clients only.
 - Wallet mutations remain atomic database RPCs scoped to auth.uid(); checkout remains explicitly simulated until a payment provider is requested.
+- Keep the store context in store-context.ts and preserve its identity during hot updates so mounted providers and refreshed consumers cannot diverge.

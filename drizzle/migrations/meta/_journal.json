@@ -15,6 +15,13 @@
       "when": 1793169223481,
       "tag": "0001_secure_admin_wallets_and_catalog_keys",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793232462146,
+      "tag": "0002_scope_commission_wallet_updates",
+      "breakpoints": true
     }
   ]
 }

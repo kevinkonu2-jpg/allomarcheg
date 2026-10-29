@@ -1,31 +1,11 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useContext, useEffect, useState, type ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { CITIES, validCity } from "@/lib/marketplace";
+import { StoreContext as Ctx, type CartItem, type Store } from "@/lib/store-context";
 
 export { CITIES };
-
-export type CartItem = {
-  product_id: string;
-  title: string;
-  price: number;
-  image_url: string | null;
-  city: string;
-  quantity: number;
-};
-
-type Store = {
-  city: string;
-  setCity: (c: string) => void;
-  cart: CartItem[];
-  addToCart: (item: Omit<CartItem, "quantity">) => boolean;
-  updateQty: (id: string, qty: number) => void;
-  clearCart: () => void;
-  user: User | null;
-  isAdmin: boolean;
-};
-
-const Ctx = createContext<Store | null>(null);
+export type { CartItem } from "@/lib/store-context";
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [city, setCityState] = useState<string>("Paris");
