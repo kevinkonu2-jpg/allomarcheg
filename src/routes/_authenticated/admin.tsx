@@ -70,6 +70,7 @@ function Admin() {
     toast.success("Accès administrateur accordé");
     setAdminEmail("");
     await load();
+    return undefined;
   };
 
   const cards = [
