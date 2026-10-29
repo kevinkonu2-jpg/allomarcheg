@@ -7,7 +7,7 @@ const userId = process.env['TEST_CLOUD_USER'];
 async function request(path: string, body?: unknown, authenticated = true) {
   const headers: Record<string, string> = { apikey: key ?? "", "Content-Type": "application/json" };
   if (authenticated && token) headers.Authorization = `Bearer ${token}`;
-  return fetch(`${url}/rest/v1/${path}`, { headers, method: body === undefined ? "GET" : "POST", body: body === undefined ? undefined : JSON.stringify(body) });
+  return fetch(`${url}/rest/v1/${path}`, { headers, method: body === undefined ? "GET" : "POST", body: body === undefined ? null : JSON.stringify(body) });
 }
 
 describe.skipIf(!url || !key || !token || !userId)("Live marketplace rules", () => {
