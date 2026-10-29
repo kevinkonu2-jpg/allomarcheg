@@ -1,0 +1,39 @@
+import { describe, expect, it } from "vitest";
+
+const url = process.env['TEST_CLOUD_URL'];
+const key = process.env['TEST_CLOUD_KEY'];
+const token = process.env['TEST_CLOUD_TOKEN'];
+const userId = process.env['TEST_CLOUD_USER'];
+async function request(path: string, body?: unknown, authenticated = true) {
+  const headers: Record<string, string> = { apikey: key ?? "", "Content-Type": "application/json" };
+  if (authenticated && token) headers.Authorization = `Bearer ${token}`;
+  return fetch(`${url}/rest/v1/${path}`, { headers, method: body === undefined ? "GET" : "POST", body: body === undefined ? undefined : JSON.stringify(body) });
+}
+
+describe.skipIf(!url || !key || !token || !userId)("Live marketplace rules", () => {
+  it("has at least six Amazon examples and two local examples per Paris and Boston", async () => {
+    const response = await request("products?select=is_amazon_affiliate,city_target", undefined, false);
+    expect(response.ok).toBe(true);
+    const products = await response.json() as { is_amazon_affiliate: boolean; city_target: string | null }[];
+    expect(products.filter((p) => p.is_amazon_affiliate).length).toBeGreaterThanOrEqual(6);
+    for (const city of ["Paris", "Boston"]) expect(products.filter((p) => !p.is_amazon_affiliate && p.city_target === city).length).toBeGreaterThanOrEqual(2);
+  });
+  it("rejects invalid withdrawals without changing the admin's wallet", async () => {
+    const path = `admin_wallets?select=available_balance,withdrawn_amount&admin_id=eq.${userId}`;
+    const before = await (await request(path)).json();
+    expect(before).toHaveLength(1);
+    for (const amount of [0, -1, 0.001, null]) expect((await request("rpc/request_withdrawal", { _amount: amount })).ok).toBe(false);
+    expect(await (await request(path)).json()).toEqual(before);
+  });
+  it("does not allow anonymous users to grant administrator access", async () => {
+    expect((await request("rpc/grant_admin", { _email: "nobody@example.test", _share: 0 }, false)).ok).toBe(false);
+  });
+  it("rejects a basket mixing Paris and Boston", async () => {
+    const products = await (await request("products?select=id,city_target&is_amazon_affiliate=eq.false")).json() as { id: string; city_target: string }[];
+    const paris = products.find((p) => p.city_target === "Paris");
+    const boston = products.find((p) => p.city_target === "Boston");
+    expect(paris).toBeDefined(); expect(boston).toBeDefined();
+    const response = await request("rpc/place_order", { _items: [{ product_id: paris?.id, quantity: 1 }, { product_id: boston?.id, quantity: 1 }], _shipping: "Adresse de test, Paris" });
+    expect(response.ok).toBe(false);
+  });
+});
