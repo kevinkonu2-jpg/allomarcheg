@@ -22,6 +22,6 @@ export type Store = {
 };
 
 // Keep providers and consumers on the same context across preview updates.
-const previous: Context<Store | null> | undefined = import.meta.hot?.data['storeContext'];
+const previous: Context<Store | null> | undefined = import.meta.hot?.data?.['storeContext'];
 export const StoreContext = previous ?? createContext<Store | null>(null);
-if (import.meta.hot) import.meta.hot.data['storeContext'] = StoreContext;
+if (import.meta.hot?.data) import.meta.hot.data['storeContext'] = StoreContext;
