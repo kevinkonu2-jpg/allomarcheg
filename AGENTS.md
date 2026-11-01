@@ -13,5 +13,6 @@
 - Initialize demo rows with the idempotent scripts/seed-demo.sql data script after schema migrations; never seed on page load.
 - Resolve generated product image identifiers in src/lib/product-images.ts so database examples can use bundled visuals.
 - Only an existing authenticated admin may grant another account the admin role through the database RPC; public signup creates clients only.
-- Wallet mutations remain atomic database RPCs scoped to auth.uid(); checkout remains explicitly simulated until a payment provider is requested.
+- Wallet mutations remain atomic database RPCs scoped to auth.uid(); reads are owner-only and pending orders never credit wallets, so unverified payments cannot generate revenue.
+- Local checkout uses a validated checkout module and authenticated server function that creates a pending order with database-priced lines; future payment gateways must settle verified payments server-side.
 - Keep the store context in store-context.ts and preserve its identity during hot updates so mounted providers and refreshed consumers cannot diverge.
