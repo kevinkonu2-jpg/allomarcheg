@@ -50,4 +50,18 @@ describe.skipIf(!url || !key || !token || !userId)("Live marketplace rules", () 
     expect(products).toHaveLength(1);
     expect((await request("rpc/place_order", { _items: [{ product_id: products[0].id, quantity: 1 }], _shipping: "Adresse de test, Paris" })).ok).toBe(false);
   });
+  it("creates pending local orders without changing finances", async () => {
+    const walletPath = "admin_wallets?select=total_earned,available_balance,withdrawn_amount";
+    const before = await (await request(walletPath)).json();
+    const statsBefore = await (await request("rpc/admin_stats", {})).json();
+    const products = await (await request("products?select=id,price&is_amazon_affiliate=eq.false&city_target=eq.Paris&limit=1")).json();
+    expect(products).toHaveLength(1);
+    const response = await request("rpc/place_order", { _items: [{ product_id: products[0].id, quantity: 1, price: 0 }], _shipping: "Vérification automatique sans paiement, Paris" });
+    expect(response.ok).toBe(true);
+    const id = await response.json();
+    const orders = await (await request(`orders?select=payment_status,total_amount&id=eq.${id}`)).json();
+    expect(orders).toEqual([{ payment_status: "pending", total_amount: products[0].price }]);
+    expect(await (await request(walletPath)).json()).toEqual(before);
+    expect(await (await request("rpc/admin_stats", {})).json()).toEqual(statsBefore);
+  });
 });
