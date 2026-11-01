@@ -41,7 +41,7 @@ export function ProductCard({ p }: { p: Product }) {
               <a href={affiliateUrl} target="_blank" rel="noopener noreferrer sponsored">Acheter sur Amazon <ExternalLink /></a>
             </Button> : <Button variant="amazon" size="sm" disabled>Lien indisponible</Button>
           ) : (
-            <Button size="sm" onClick={() => {
+            <Button variant="local" size="sm" onClick={() => {
               const ok = addToCart({ product_id: p.id, title: p.title, price: Number(p.price), image_url: productImage(p.image_url) ?? null, city: p.city_target ?? "" });
               ok ? toast.success("Article ajouté au panier") : toast.error(`Livraison uniquement à ${p.city_target}`);
             }}><Plus /> Ajouter au panier</Button>

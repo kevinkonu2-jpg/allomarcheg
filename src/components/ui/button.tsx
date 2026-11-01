@@ -18,6 +18,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         accent: "bg-accent text-accent-foreground shadow hover:bg-accent/85 font-semibold",
         amazon: "bg-amazon text-amazon-foreground shadow hover:bg-amazon/85 font-semibold",
+        local: "bg-local text-local-foreground shadow hover:bg-local/90",
       },
       size: {
         default: "h-9 px-4 py-2",

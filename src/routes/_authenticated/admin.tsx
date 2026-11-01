@@ -97,7 +97,7 @@ function Admin() {
         ))}
       </div>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-3">
+      <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="rounded-lg bg-primary p-6 text-primary-foreground shadow-card">
           <p className="flex items-center gap-2 text-sm opacity-80"><Wallet className="h-4 w-4" /> Mon portefeuille admin · {mine?.share_percent ?? 0}% de part</p>
           <p className="mt-3 font-display text-4xl">{fmt(Number(mine?.available_balance ?? 0))}</p>
@@ -112,7 +112,7 @@ function Admin() {
           </div>
           <p className="mt-3 text-xs opacity-80">Les demandes ne déclenchent pas de virement bancaire automatique.</p>
         </div>
-        <div className="border-t pt-6 lg:col-span-2">
+        <div className="min-w-0 border-t pt-6 lg:col-span-2">
           <h2 className="text-xl">Mon récapitulatif financier</h2>
           <p className="text-sm text-muted-foreground">Vos soldes sont privés. Seuls les paiements confirmés génèrent des commissions.</p>
           <Table className="mt-3">
