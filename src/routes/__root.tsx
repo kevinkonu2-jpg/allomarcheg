@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { StoreProvider } from "@/lib/store";
 import { SiteHeader } from "@/components/SiteHeader";
+import { MobileNavigation } from "@/components/MobileNavigation";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -80,7 +81,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "Allô Marché Global" },
       { name: "description", content: "Boutiques locales et sélection Amazon réunies dans un même marché." },
       { property: "og:title", content: "Allô Marché Global" },
@@ -123,13 +124,14 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <StoreProvider>
         <SiteHeader />
-        <main className="min-h-[70vh]">
+        <main className="min-h-[calc(100dvh-72px)] min-w-0">
           <Outlet />
         </main>
-        <footer className="mt-16 border-t py-8 text-center text-sm text-muted-foreground">
+        <footer className="mt-10 border-t px-4 pt-6 pb-[calc(96px+env(safe-area-inset-bottom))] text-center text-xs text-muted-foreground md:mt-16 md:py-8">
           © Allô Marché Global · Sélection Amazon · Liens de démonstration, prix indicatifs.
         </footer>
-        <Toaster />
+        <MobileNavigation />
+        <Toaster className="mobile-toaster" />
       </StoreProvider>
     </QueryClientProvider>
   );
