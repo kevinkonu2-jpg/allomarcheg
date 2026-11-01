@@ -36,4 +36,18 @@ describe.skipIf(!url || !key || !token || !userId)("Live marketplace rules", () 
     const response = await request("rpc/place_order", { _items: [{ product_id: paris?.id, quantity: 1 }, { product_id: boston?.id, quantity: 1 }], _shipping: "Adresse de test, Paris" });
     expect(response.ok).toBe(false);
   });
+  it("only returns the authenticated admin's own wallet", async () => {
+    const wallets = await (await request("admin_wallets?select=admin_id")).json();
+    expect(wallets).toEqual([{ admin_id: userId }]);
+    expect(await (await request("admin_wallets?select=admin_id", undefined, false)).json()).not.toEqual(wallets);
+  });
+  it("does not allow a browser to forge a paid order", async () => {
+    const response = await request("orders", { client_id: userId, total_amount: 10, payment_status: "paid" });
+    expect(response.ok).toBe(false);
+  });
+  it("rejects Amazon products in local checkout", async () => {
+    const products = await (await request("products?select=id&is_amazon_affiliate=eq.true&limit=1")).json();
+    expect(products).toHaveLength(1);
+    expect((await request("rpc/place_order", { _items: [{ product_id: products[0].id, quantity: 1 }], _shipping: "Adresse de test, Paris" })).ok).toBe(false);
+  });
 });

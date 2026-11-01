@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { act, render, waitFor } from "@testing-library/react";
-import { matchesCity, validWithdrawal } from "@/lib/marketplace";
+import { matchesCity, safeAffiliateUrl, validWithdrawal } from "@/lib/marketplace";
+import { checkoutSchema } from "@/lib/checkout";
 import { StoreProvider, useStore } from "@/lib/store";
 
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { auth: { getUser: async () => ({ data: { user: null } }), onAuthStateChange: () => ({ data: { sub: null, subscription: { unsubscribe() {} } } }) } } }));
@@ -38,5 +39,18 @@ describe("Withdrawals", () => {
   });
   it("rejects zero, negative, non-finite and sub-cent amounts", () => {
     for (const amount of [0, -1, NaN, Infinity, 0.001]) expect(validWithdrawal(amount, 100)).toBe(false);
+  });
+});
+
+describe("Purchase boundaries", () => {
+  it("preserves tracked HTTPS affiliate URLs", () => {
+    expect(safeAffiliateUrl("https://www.amazon.fr/dp/ABC?tag=allomarche-21")).toBe("https://www.amazon.fr/dp/ABC?tag=allomarche-21");
+    for (const link of ["javascript:alert(1)", "http://amazon.fr", "https://user:pass@amazon.fr", null]) expect(safeAffiliateUrl(link)).toBeNull();
+  });
+  it("accepts product IDs and quantities but strips browser prices", () => {
+    const input = { items: [{ product_id: "11111111-0000-4000-8000-000000000001", quantity: 2, price: 0 }], shipping: "10 rue du Marché, Paris" };
+    expect(checkoutSchema.parse(input).items[0]).toEqual({ product_id: input.items[0]?.product_id, quantity: 2 });
+    expect(checkoutSchema.safeParse({ ...input, items: [] }).success).toBe(false);
+    expect(checkoutSchema.safeParse({ ...input, items: [{ ...input.items[0], quantity: 0 }] }).success).toBe(false);
   });
 });

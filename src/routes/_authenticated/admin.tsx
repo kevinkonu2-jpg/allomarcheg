@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Banknote, Package, ShoppingCart, Store, Wallet } from "lucide-react";
+import { Banknote, ShoppingCart, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -15,14 +15,14 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: Admin,
 });
 
-type Stats = { revenue: number; commissions: number; orders: number; vendors: number; affiliates: number };
+type Stats = { revenue: number; commissions: number; orders: number; pending_withdrawals: number };
 type WalletT = { admin_id: string; share_percent: number; total_earned: number; available_balance: number; withdrawn_amount: number };
 
 function Admin() {
   const { user, isAdmin } = useStore();
   const [stats, setStats] = useState<Stats | null>(null);
   const [wallets, setWallets] = useState<WalletT[]>([]);
-  const [orders, setOrders] = useState<{ id: string; total_amount: number; platform_commission: number; created_at: string; shipping_address: string | null }[]>([]);
+  const [orders, setOrders] = useState<{ id: string; total_amount: number; platform_commission: number; payment_status: string; created_at: string; shipping_address: string | null }[]>([]);
   const [amount, setAmount] = useState("");
 
   const [busy, setBusy] = useState(false);
@@ -31,18 +31,19 @@ function Admin() {
   const [withdrawals, setWithdrawals] = useState<{ id: string; amount: number; status: string; created_at: string }[]>([]);
 
   const load = useCallback(async () => {
+    if (!user) return;
     const [s, w, o, r] = await Promise.all([
       supabase.rpc("admin_stats"),
-      supabase.from("admin_wallets").select("*"),
-      supabase.from("orders").select("id,total_amount,platform_commission,created_at,shipping_address").order("created_at", { ascending: false }).limit(10),
-      supabase.from("withdrawals").select("id,amount,status,created_at").order("created_at", { ascending: false }),
+      supabase.from("admin_wallets").select("*").eq("admin_id", user.id),
+      supabase.from("orders").select("id,total_amount,platform_commission,payment_status,created_at,shipping_address").order("created_at", { ascending: false }).limit(10),
+      supabase.from("withdrawals").select("id,amount,status,created_at").eq("admin_id", user.id).order("created_at", { ascending: false }),
     ]);
     if (s.error || w.error || o.error || r.error) toast.error("Impossible de charger les données administrateur.");
     setWithdrawals(r.data ?? []);
     if (s.data) setStats(s.data as unknown as Stats);
     setWallets((w.data as WalletT[]) ?? []);
     setOrders(o.data ?? []);
-  }, []);
+  }, [user]);
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, load]);
 
   if (!isAdmin) return <div className="mx-auto max-w-xl px-4 py-20 text-center"><h1 className="text-3xl">Accès réservé aux administrateurs</h1><p className="mt-2 text-muted-foreground">Votre compte ne dispose pas des droits administrateur.</p></div>;
@@ -74,21 +75,21 @@ function Admin() {
   };
 
   const cards = [
-    { l: "Total des ventes", v: fmt(Number(stats?.revenue ?? 0)), i: Banknote },
-    { l: "Total des commissions", v: fmt(Number(stats?.commissions ?? 0)), i: ShoppingCart },
-    { l: "Vendeurs actifs", v: stats?.vendors ?? 0, i: Store },
-    { l: "Produits Amazon", v: stats?.affiliates ?? 0, i: Package },
+    { l: "Ventes payées", v: stats?.orders ?? 0, i: ShoppingCart },
+    { l: "Chiffre d’affaires encaissé", v: fmt(Number(stats?.revenue ?? 0)), i: Banknote },
+    { l: "Commissions encaissées", v: fmt(Number(stats?.commissions ?? 0)), i: Banknote },
+    { l: "Mes retraits en attente", v: fmt(Number(stats?.pending_withdrawals ?? 0)), i: Wallet },
   ];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
-      <div className="flex items-end justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <h1 className="text-4xl">Espace admin</h1>
-        <Button variant="outline" asChild><Link to="/">Passer une commande démo</Link></Button>
+        <Button variant="outline" asChild><Link to="/">Voir le catalogue</Link></Button>
       </div>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map(({ l, v, i: I }) => (
-          <div key={l} className="rounded-xl border bg-card p-5 shadow-card">
+            <div key={l} className="rounded-lg border bg-card p-5 shadow-card">
             <I className="h-5 w-5 text-primary" />
             <p className="mt-3 text-sm text-muted-foreground">{l}</p>
             <p className="font-display text-3xl">{v}</p>
@@ -97,7 +98,7 @@ function Admin() {
       </div>
 
       <div className="mt-10 grid gap-6 lg:grid-cols-3">
-        <div className="rounded-xl bg-primary p-6 text-primary-foreground shadow-card">
+        <div className="rounded-lg bg-primary p-6 text-primary-foreground shadow-card">
           <p className="flex items-center gap-2 text-sm opacity-80"><Wallet className="h-4 w-4" /> Mon portefeuille admin · {mine?.share_percent ?? 0}% de part</p>
           <p className="mt-3 font-display text-4xl">{fmt(Number(mine?.available_balance ?? 0))}</p>
           <p className="text-sm opacity-80">Solde disponible</p>
@@ -109,11 +110,11 @@ function Admin() {
             <Input type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Montant (€)" aria-label="Montant du retrait" className="bg-background text-foreground" />
             <Button variant="accent" onClick={withdraw} disabled={busy || !validWithdrawal(Number(amount), Number(mine?.available_balance ?? 0))}>Demander un retrait</Button>
           </div>
-          <p className="mt-3 text-xs opacity-80">Fonds de démonstration · Les demandes ne déclenchent pas de virement bancaire.</p>
+          <p className="mt-3 text-xs opacity-80">Les demandes ne déclenchent pas de virement bancaire automatique.</p>
         </div>
         <div className="border-t pt-6 lg:col-span-2">
-          <h2 className="text-xl">Portefeuilles administrateurs</h2>
-          <p className="text-sm text-muted-foreground">La commission de 10 % est répartie selon les parts des administrateurs.</p>
+          <h2 className="text-xl">Mon récapitulatif financier</h2>
+          <p className="text-sm text-muted-foreground">Vos soldes sont privés. Seuls les paiements confirmés génèrent des commissions.</p>
           <Table className="mt-3">
             <TableHeader><TableRow><TableHead>Administrateur</TableHead><TableHead>Part</TableHead><TableHead>Total cumulé</TableHead><TableHead>Disponible</TableHead><TableHead>Retraits demandés</TableHead></TableRow></TableHeader>
             <TableBody>
@@ -147,18 +148,19 @@ function Admin() {
       <div className="mt-10 border-t pt-6">
         <h2 className="text-xl">Commandes récentes</h2>
         <Table className="mt-3">
-          <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Adresse de livraison</TableHead><TableHead>Total</TableHead><TableHead>Commission</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Adresse de livraison</TableHead><TableHead>Total</TableHead><TableHead>Paiement</TableHead></TableRow></TableHeader>
           <TableBody>
             {orders.map((o) => (
               <TableRow key={o.id}>
                 <TableCell>{new Date(o.created_at).toLocaleDateString("fr-FR")}</TableCell>
                 <TableCell>{o.shipping_address}</TableCell>
                 <TableCell>{fmt(Number(o.total_amount))}</TableCell>
-                <TableCell>{fmt(Number(o.platform_commission))}</TableCell>
+                <TableCell>{o.payment_status === "paid" ? "Payé" : "En attente"}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        {!orders.length && <p className="mt-3 text-sm text-muted-foreground">Aucune commande enregistrée.</p>}
       </div>
     </div>
   );

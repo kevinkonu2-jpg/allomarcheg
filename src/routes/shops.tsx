@@ -22,9 +22,14 @@ type Shop = { id: string; shop_name: string; city: string; description: string |
 function Shops() {
   const { city } = useStore();
   const [shops, setShops] = useState<Shop[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
+    let active = true;
+    setLoading(true);
     supabase.from("shops").select("*, products(*)").eq("city", city).eq("shop_status", "active")
-      .then(({ data }) => setShops((data as unknown as Shop[]) ?? []));
+      .then(({ data, error }) => { if (active) { setShops((data as unknown as Shop[]) ?? []); setFailed(!!error); setLoading(false); } });
+    return () => { active = false; };
   }, [city]);
 
   return (
@@ -32,16 +37,16 @@ function Shops() {
       <p className="flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-4 w-4" /> Boutiques livrant à {city}</p>
       <h1 className="mt-1 text-4xl">Boutiques locales</h1>
       <div className="mt-10 space-y-14">
-        {shops.map((s) => (
+        {!loading && shops.map((s) => (
           <section key={s.id}>
             <h2 className="text-2xl">{s.shop_name}</h2>
             <p className="text-muted-foreground">{s.description}</p>
             <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {s.products.map((p) => <ProductCard key={p.id} p={{ ...p, shops: { shop_name: s.shop_name } }} />)}
+               {s.products.filter((p) => !p.is_amazon_affiliate && p.city_target === city).map((p) => <ProductCard key={p.id} p={{ ...p, shops: { shop_name: s.shop_name } }} />)}
             </div>
           </section>
         ))}
-        {shops.length === 0 && <p className="text-muted-foreground">Aucune boutique à {city} pour le moment.</p>}
+        {loading ? <p className="text-muted-foreground">Chargement des boutiques…</p> : failed ? <p className="text-destructive">Les boutiques sont indisponibles. Veuillez réessayer.</p> : shops.length === 0 && <p className="text-muted-foreground">Aucune boutique à {city} pour le moment.</p>}
       </div>
     </div>
   );
