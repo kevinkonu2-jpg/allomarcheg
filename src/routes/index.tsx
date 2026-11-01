@@ -35,14 +35,15 @@ function Index() {
     supabase.from("products").select("*, shops(shop_name)").order("created_at").then(({ data, error }) => { setProducts((data as Product[]) ?? []); setFailed(!!error); setLoading(false); });
   }, []);
 
+  const cats = ["Tout", ...Array.from(new Set(products.filter((p) => matchesCity(p, city) && (source === "all" || (source === "amazon" ? p.is_amazon_affiliate : !p.is_amazon_affiliate))).map((p) => p.category)))];
+  const activeCat = cats.includes(cat) ? cat : "Tout";
   const visible = useMemo(() => products.filter((p) => {
     if (!matchesCity(p, city)) return false;
     if (source === "local" && p.is_amazon_affiliate) return false;
     if (source === "amazon" && !p.is_amazon_affiliate) return false;
-    if (cat !== "Tout" && p.category !== cat) return false;
+    if (activeCat !== "Tout" && p.category !== activeCat) return false;
     return !q || (p.title + " " + (p.description ?? "")).toLowerCase().includes(q.toLowerCase());
-  }), [products, city, q, cat, source]);
-  const cats = ["Tout", ...Array.from(new Set(products.filter((p) => matchesCity(p, city)).map((p) => p.category)))];
+  }), [products, city, q, activeCat, source]);
   useEffect(() => { setCat("Tout"); }, [city]);
 
   return (
@@ -71,21 +72,21 @@ function Index() {
           </div>
         </div>
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <ToggleGroup type="single" value={source} onValueChange={(v) => v && setSource(v)} variant="outline" size="sm">
+          <ToggleGroup type="single" value={source} onValueChange={(v) => { if (v) { setSource(v); setCat("Tout"); } }} variant="outline" size="sm">
             <ToggleGroupItem value="all">Tout</ToggleGroupItem>
             <ToggleGroupItem value="local">Local · {city}</ToggleGroupItem>
             <ToggleGroupItem value="amazon">Amazon</ToggleGroupItem>
           </ToggleGroup>
           <div className="flex flex-wrap gap-2">
             {cats.map((c) => (
-              <Button key={c} onClick={() => setCat(c)} size="sm" variant={cat === c ? "default" : "outline"}>{c}</Button>
+              <Button key={c} onClick={() => setCat(c)} size="sm" variant={activeCat === c ? "default" : "outline"}>{c}</Button>
             ))}
           </div>
         </div>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {visible.map((p) => <ProductCard key={p.id} p={p} />)}
         </div>
-        {loading ? <p className="py-12 text-center text-muted-foreground">Chargement des produits…</p> : failed ? <p className="py-12 text-center text-destructive">Le catalogue est indisponible. Veuillez réessayer.</p> : visible.length === 0 && <p className="py-16 text-center text-muted-foreground">Aucun produit ne correspond à vos filtres.</p>}
+        {loading ? <p className="py-12 text-center text-muted-foreground">Chargement des produits…</p> : failed ? <div className="py-12 text-center"><p className="text-destructive">Le catalogue est indisponible.</p><Button variant="outline" className="mt-3" onClick={() => window.location.reload()}>Réessayer</Button></div> : visible.length === 0 && <div className="py-12 text-center"><p className="text-muted-foreground">Aucun article trouvé à {city} pour cette sélection.</p><Button variant="outline" className="mt-3" onClick={() => { setQ(""); setCat("Tout"); setSource("all"); }}>Afficher tous les articles</Button></div>}
       </section>
     </div>
   );

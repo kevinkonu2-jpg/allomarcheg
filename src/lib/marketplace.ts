@@ -6,3 +6,11 @@ export function matchesCity(product: { is_amazon_affiliate: boolean; city_target
 export function validWithdrawal(amount: number, available: number) {
   return Number.isFinite(amount) && amount > 0 && amount <= available && Math.abs(amount * 100 - Math.round(amount * 100)) < 0.000001;
 }
+
+export function safeAffiliateUrl(value: string | null): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && !url.username && !url.password ? url.href : null;
+  } catch { return null; }
+}

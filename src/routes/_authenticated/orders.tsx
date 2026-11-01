@@ -27,7 +27,7 @@ function Orders() {
           <div key={o.id} className="rounded-xl border bg-card p-5">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">{new Date(o.created_at).toLocaleString("fr-FR")}</span>
-              <Badge>{o.payment_status === "paid" ? "Payée · démo" : o.payment_status === "pending" ? "En attente" : o.payment_status}</Badge>
+              <Badge>{o.payment_status === "paid" ? "Payée" : o.payment_status === "pending" ? "En attente de paiement" : o.payment_status}</Badge>
             </div>
             <p className="mt-2">{o.items.map((i) => `${i.quantity}× ${i.title}`).join(", ")}</p>
             <div className="mt-2 flex justify-between text-sm"><span className="text-muted-foreground">{o.shipping_address}</span><strong>{fmt(Number(o.total_amount))}</strong></div>

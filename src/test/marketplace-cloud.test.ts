@@ -36,4 +36,32 @@ describe.skipIf(!url || !key || !token || !userId)("Live marketplace rules", () 
     const response = await request("rpc/place_order", { _items: [{ product_id: paris?.id, quantity: 1 }, { product_id: boston?.id, quantity: 1 }], _shipping: "Adresse de test, Paris" });
     expect(response.ok).toBe(false);
   });
+  it("only returns the authenticated admin's own wallet", async () => {
+    const wallets = await (await request("admin_wallets?select=admin_id")).json();
+    expect(wallets).toEqual([{ admin_id: userId }]);
+    expect(await (await request("admin_wallets?select=admin_id", undefined, false)).json()).not.toEqual(wallets);
+  });
+  it("does not allow a browser to forge a paid order", async () => {
+    const response = await request("orders", { client_id: userId, total_amount: 10, payment_status: "paid" });
+    expect(response.ok).toBe(false);
+  });
+  it("rejects Amazon products in local checkout", async () => {
+    const products = await (await request("products?select=id&is_amazon_affiliate=eq.true&limit=1")).json();
+    expect(products).toHaveLength(1);
+    expect((await request("rpc/place_order", { _items: [{ product_id: products[0].id, quantity: 1 }], _shipping: "Adresse de test, Paris" })).ok).toBe(false);
+  });
+  it("creates pending local orders without changing finances", async () => {
+    const walletPath = "admin_wallets?select=total_earned,available_balance,withdrawn_amount";
+    const before = await (await request(walletPath)).json();
+    const statsBefore = await (await request("rpc/admin_stats", {})).json();
+    const products = await (await request("products?select=id,price&is_amazon_affiliate=eq.false&city_target=eq.Paris&limit=1")).json();
+    expect(products).toHaveLength(1);
+    const response = await request("rpc/place_order", { _items: [{ product_id: products[0].id, quantity: 1, price: 0 }], _shipping: "Vérification automatique sans paiement, Paris" });
+    expect(response.ok).toBe(true);
+    const id = await response.json();
+    const orders = await (await request(`orders?select=payment_status,total_amount&id=eq.${id}`)).json();
+    expect(orders).toEqual([{ payment_status: "pending", total_amount: products[0].price }]);
+    expect(await (await request(walletPath)).json()).toEqual(before);
+    expect(await (await request("rpc/admin_stats", {})).json()).toEqual(statsBefore);
+  });
 });

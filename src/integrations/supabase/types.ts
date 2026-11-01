@@ -42,7 +42,67 @@ export type Database = {
           total_earned?: number
           withdrawn_amount?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wallets_admin_profile_fk"
+            columns: ["admin_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          id: string
+          order_id: string
+          product_id: string | null
+          quantity: number
+          shop_id: string | null
+          title: string
+          unit_price: number
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          product_id?: string | null
+          quantity: number
+          shop_id?: string | null
+          title: string
+          unit_price: number
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          product_id?: string | null
+          quantity?: number
+          shop_id?: string | null
+          title?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {
@@ -50,6 +110,8 @@ export type Database = {
           created_at: string
           id: string
           items: Json
+          payment_provider: string | null
+          payment_reference: string | null
           payment_status: string
           platform_commission: number
           shipping_address: string | null
@@ -60,6 +122,8 @@ export type Database = {
           created_at?: string
           id?: string
           items?: Json
+          payment_provider?: string | null
+          payment_reference?: string | null
           payment_status?: string
           platform_commission?: number
           shipping_address?: string | null
@@ -70,12 +134,22 @@ export type Database = {
           created_at?: string
           id?: string
           items?: Json
+          payment_provider?: string | null
+          payment_reference?: string | null
           payment_status?: string
           platform_commission?: number
           shipping_address?: string | null
           total_amount?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_client_profile_fk"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
@@ -227,7 +301,15 @@ export type Database = {
           id?: string
           status?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "withdrawals_wallet_owner_fk"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "admin_wallets"
+            referencedColumns: ["admin_id"]
+          },
+        ]
       }
     }
     Views: {

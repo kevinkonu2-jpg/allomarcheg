@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { fmt, useStore } from "@/lib/store";
 import { productImage } from "@/lib/product-images";
+import { safeAffiliateUrl } from "@/lib/marketplace";
 
 export type Product = {
   id: string;
@@ -20,6 +21,7 @@ export type Product = {
 
 export function ProductCard({ p }: { p: Product }) {
   const { addToCart } = useStore();
+  const affiliateUrl = safeAffiliateUrl(p.affiliate_link);
   return (
     <article className="group flex flex-col overflow-hidden rounded-lg border bg-card shadow-card">
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
@@ -27,7 +29,7 @@ export function ProductCard({ p }: { p: Product }) {
       </div>
       <div className="flex flex-1 flex-col gap-1 p-4">
         <Badge className="mb-2 w-fit whitespace-normal text-[10px]" variant={p.is_amazon_affiliate ? "amazon" : "local"}>
-          {p.is_amazon_affiliate ? "EXPÉDIÉ PAR AMAZON / AFFILIATE" : `BOUTIQUE LOCALE - ${p.city_target}`}
+          {p.is_amazon_affiliate ? "Partenaire Amazon" : `Boutique Locale · ${p.city_target}`}
         </Badge>
         <p className="text-xs uppercase tracking-wider text-muted-foreground">{p.category}{p.shops ? ` · ${p.shops.shop_name}` : ""}</p>
         <h3 className="font-display text-lg leading-tight">{p.title}</h3>
@@ -35,11 +37,11 @@ export function ProductCard({ p }: { p: Product }) {
         <div className="mt-auto flex flex-col gap-3 pt-4">
           <span className="font-semibold">{fmt(Number(p.price))}</span>
           {p.is_amazon_affiliate ? (
-            p.affiliate_link ? <Button variant="amazon" size="sm" asChild>
-              <a href={p.affiliate_link} target="_blank" rel="noopener noreferrer sponsored">Acheter sur Amazon <ExternalLink /></a>
+            affiliateUrl ? <Button variant="amazon" size="sm" asChild>
+              <a href={affiliateUrl} target="_blank" rel="noopener noreferrer sponsored">Acheter sur Amazon <ExternalLink /></a>
             </Button> : <Button variant="amazon" size="sm" disabled>Lien indisponible</Button>
           ) : (
-            <Button size="sm" onClick={() => {
+            <Button variant="local" size="sm" onClick={() => {
               const ok = addToCart({ product_id: p.id, title: p.title, price: Number(p.price), image_url: productImage(p.image_url) ?? null, city: p.city_target ?? "" });
               ok ? toast.success("Article ajouté au panier") : toast.error(`Livraison uniquement à ${p.city_target}`);
             }}><Plus /> Ajouter au panier</Button>
