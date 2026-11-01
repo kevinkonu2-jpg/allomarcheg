@@ -1,5 +1,5 @@
-# Update roadmap
-- [x] Initialize French sample catalog with six Amazon products and local products for Paris and Boston.
-- [x] Translate and distinguish cards, navigation, basket and orders; persist city safely.
-- [x] Secure admin assignment and independent withdrawals, display commission metrics.
-- [x] Test filtering, persistence, permissions and signed-in demo purchase/withdrawal flows.
+# Structural cleanup roadmap
+- [ ] Exclude and purge verified demonstration financial records; initialize genuine financial metrics at zero.
+- [ ] Restrict individual wallets to their authenticated owner and harden local checkout records.
+- [ ] Separate Amazon/local styling and purchases; stabilize city filtering and empty states.
+- [ ] Extract pending checkout flow and test permissions, financial rules, and signed-in ordering.
