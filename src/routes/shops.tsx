@@ -33,15 +33,15 @@ function Shops() {
   }, [city]);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10">
+    <div className="mx-auto max-w-7xl px-4 py-6 md:py-10">
       <p className="flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-4 w-4" /> Boutiques livrant à {city}</p>
-      <h1 className="mt-1 text-4xl">Boutiques locales</h1>
-      <div className="mt-10 space-y-14">
+      <h1 className="mt-2 font-sans text-2xl font-bold md:text-4xl">Boutiques locales</h1>
+      <div className="mt-6 space-y-10">
         {!loading && shops.map((s) => (
           <section key={s.id}>
-            <h2 className="text-2xl">{s.shop_name}</h2>
-            <p className="text-muted-foreground">{s.description}</p>
-            <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <h2 className="break-words text-xl md:text-2xl">{s.shop_name}</h2>
+            <p className="mt-1 break-words text-sm text-muted-foreground">{s.description}</p>
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
                {s.products.filter((p) => !p.is_amazon_affiliate && p.city_target === city).map((p) => <ProductCard key={p.id} p={{ ...p, shops: { shop_name: s.shop_name } }} />)}
             </div>
           </section>

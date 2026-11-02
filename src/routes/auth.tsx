@@ -46,11 +46,11 @@ function Auth() {
     return undefined;
   };
 
-  if (user) return <div className="mx-auto max-w-md px-4 py-16"><h1 className="text-4xl">Mon compte</h1><p className="mt-4 text-muted-foreground">{user.email}</p><div className="mt-6 flex flex-wrap gap-3"><Button onClick={() => navigate({ to: "/orders" })}>Mes commandes</Button>{isAdmin && <Button variant="secondary" onClick={() => navigate({ to: "/admin" })}>Espace admin</Button>}</div></div>;
+  if (user) return <div className="mx-auto max-w-md px-4 py-6 md:py-16"><h1 className="font-sans text-2xl font-bold">Mon compte</h1><p className="mt-4 break-words text-muted-foreground">{user.email}</p><div className="mt-6 grid gap-3"><Button onClick={() => navigate({ to: "/orders" })}>Mes commandes</Button>{isAdmin && <Button variant="secondary" onClick={() => navigate({ to: "/admin" })}>Espace admin</Button>}<Button variant="outline" onClick={async () => { await supabase.auth.signOut(); await navigate({ to: "/" }); }}>Se déconnecter</Button></div></div>;
   return (
-    <div className="mx-auto flex max-w-md flex-col px-4 py-16">
-      <h1 className="text-4xl">{mode === "in" ? "Connexion" : "Créer un compte"}</h1>
-      <form onSubmit={submit} className="mt-8 space-y-4 rounded-xl border bg-card p-6 shadow-card">
+    <div className="mx-auto flex max-w-md flex-col px-4 py-6 md:py-16">
+      <h1 className="font-sans text-2xl font-bold">{mode === "in" ? "Connexion" : "Créer un compte"}</h1>
+      <form onSubmit={submit} className="mt-6 space-y-4 border-t pt-6">
         {mode === "up" && <div className="space-y-1"><Label htmlFor="n">Nom complet</Label><Input id="n" value={name} onChange={(e) => setName(e.target.value)} required /></div>}
         <div className="space-y-1"><Label htmlFor="e">E-mail</Label><Input id="e" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
         <div className="space-y-1"><Label htmlFor="p">Mot de passe</Label><Input id="p" type="password" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
