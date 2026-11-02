@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ProductCard, type Product } from "@/components/ProductCard";
 import { useStore } from "@/lib/store";
 import { matchesCity } from "@/lib/marketplace";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function ProductCatalog() {
   const { city } = useStore();
@@ -47,7 +48,8 @@ export function ProductCatalog() {
             <ToggleGroupItem value="local">Local · {city}</ToggleGroupItem>
             <ToggleGroupItem value="amazon">Amazon</ToggleGroupItem>
           </ToggleGroup>
-          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+          <div className="sm:hidden"><Select value={activeCat} onValueChange={setCat}><SelectTrigger aria-label="Catégorie de produits" className="bg-card"><span className="text-muted-foreground">Catégorie</span><SelectValue /></SelectTrigger><SelectContent>{cats.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
+          <div className="hidden gap-2 sm:flex sm:flex-wrap">
             {cats.map((c) => (
               <Button key={c} onClick={() => setCat(c)} size="sm" variant={activeCat === c ? "default" : "outline"}>{c}</Button>
             ))}

@@ -44,19 +44,19 @@ function Cart() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="text-4xl">Votre panier</h1>
+    <div className="mx-auto max-w-3xl px-4 py-6 md:py-10">
+      <h1 className="font-sans text-2xl font-bold md:text-4xl">Votre panier</h1>
       <p className="text-sm text-muted-foreground">Livraison à {city}</p>
       {cart.length === 0 ? (
         <p className="mt-10 text-muted-foreground">Votre panier est vide. <Link to="/" className="text-primary underline">Découvrir le catalogue</Link></p>
       ) : (
         <>
-          <ul className="mt-8 divide-y rounded-xl border bg-card">
+          <ul className="mt-6 divide-y border-y">
             {cart.map((i) => (
-              <li key={i.product_id} className="flex items-center gap-4 p-4">
-                {i.image_url && <img src={i.image_url} alt={i.title} className="h-16 w-16 rounded-md object-cover" />}
-                <div className="flex-1"><p className="font-medium">{i.title}</p><p className="text-sm text-muted-foreground">{fmt(i.price)}</p></div>
-                <div className="flex items-center gap-2">
+              <li key={i.product_id} className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-3 py-4 sm:grid-cols-[64px_minmax(0,1fr)_auto]">
+                <div className="size-16 overflow-hidden rounded-md bg-muted">{i.image_url && <img src={i.image_url} alt={i.title} className="h-full w-full object-cover" />}</div>
+                <div className="min-w-0"><p className="break-words font-medium">{i.title}</p><p className="text-sm text-muted-foreground">{fmt(i.price)}</p></div>
+                <div className="col-start-2 flex items-center gap-2 sm:col-start-auto">
                   <Button size="icon" variant="outline" onClick={() => updateQty(i.product_id, i.quantity - 1)} aria-label="Diminuer la quantité"><Minus /></Button>
                   <span className="w-6 text-center">{i.quantity}</span>
                   <Button size="icon" variant="outline" onClick={() => updateQty(i.product_id, i.quantity + 1)} aria-label="Augmenter la quantité"><Plus /></Button>
@@ -66,9 +66,9 @@ function Cart() {
           </ul>
           <div className="mt-6 space-y-3">
             <Textarea value={address} onChange={(e) => setAddress(e.target.value)} placeholder={`Adresse de livraison à ${city}`} />
-            <div className="flex items-center justify-between">
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
               <span className="text-lg">Total <strong>{fmt(total)}</strong></span>
-              <Button variant="accent" size="lg" disabled={busy} onClick={checkout}>{user ? "Valider la commande" : "Se connecter pour commander"}</Button>
+              <Button variant="accent" size="lg" className="w-full whitespace-normal sm:w-auto" disabled={busy} onClick={checkout}>{busy ? "Enregistrement…" : user ? "Valider la commande" : "Se connecter pour commander"}</Button>
             </div>
             <p className="text-xs text-muted-foreground">Paiement en ligne non disponible. La commande reste en attente ; aucun montant n’est débité.</p>
           </div>

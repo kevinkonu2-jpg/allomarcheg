@@ -19,7 +19,7 @@ export function MobileNavigation() {
       <div className="mx-auto grid h-[72px] max-w-lg grid-cols-5 items-center gap-1">
         {tabs.map(({ to, label, icon: Icon }) => {
           const active = pathname === to || (label === "Profil" && pathname === "/orders");
-          return <Button key={to} asChild variant="ghost" className={`relative h-16 min-w-0 flex-col gap-1 rounded-lg px-0 text-[10px] font-semibold ${active ? "text-primary" : "text-muted-foreground"}`}>
+          return <Button key={to} asChild variant="ghost" className={`relative h-16 min-w-0 flex-col gap-1 rounded-lg px-0 text-[10px] font-semibold hover:bg-transparent ${active ? "text-primary" : "text-muted-foreground"}`}>
             <Link to={to} aria-current={active ? "page" : undefined}>
               <span className={`grid h-8 w-12 place-items-center rounded-lg ${active ? "bg-secondary" : ""}`}><Icon className="size-5" /></span>
               <span>{label}</span>
