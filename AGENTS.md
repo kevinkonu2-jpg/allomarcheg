@@ -15,6 +15,7 @@
 - Only an existing authenticated admin may grant another account the admin role through the database RPC; public signup creates clients only.
 - Wallet mutations remain atomic database RPCs scoped to auth.uid(); reads are owner-only and pending orders never credit wallets, so unverified payments cannot generate revenue.
 - Local checkout uses a validated checkout module and authenticated server function that creates a pending order with database-priced lines; future payment gateways must settle verified payments server-side.
+- Mobile money methods (T-Money, Wave, MTN MoMo, Airtel Money, MonCash) live in src/lib/payments.ts; only the pay_order RPC settles a pending order and credits wallets, so the same five identifiers must stay in the database CHECK constraint.
 - Keep the store context in store-context.ts and preserve its identity during hot updates so mounted providers and refreshed consumers cannot diverge.
 - Keep the shared product catalog in ProductCatalog for home and /catalog; mount mobile navigation once in the root with safe-area clearance so every screen shares consistent navigation.
 - Present financial histories as mobile lists and desktop tables, while retaining a single data source and unchanged financial permissions.

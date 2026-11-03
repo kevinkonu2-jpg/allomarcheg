@@ -1,5 +1,5 @@
-# Mobile-first redesign
-- [x] Add compact mobile header, fixed five-tab bottom navigation and distinct catalog page.
-- [x] Refine product grids, search, checkout and shared 48px controls.
-- [x] Stack admin finances and replace mobile tables with readable summaries.
-- [x] Verify navigation, cart and admin at small mobile and desktop sizes.
+# Christmas marketplace enhancement
+- [x] Generate and integrate the Allô Marché Global logo in the header and favicon.
+- [x] Add selectable mobile money methods (T-Money, Wave, MTN MoMo, Airtel Money, MonCash) to local checkout.
+- [x] Settle pending orders through the pay_order RPC so confirmed payments credit admin wallets.
+- [x] Verify checkout with payment selection, wallet credit and mobile layout in the preview.

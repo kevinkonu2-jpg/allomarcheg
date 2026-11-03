@@ -328,6 +328,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      pay_order: {
+        Args: { _order_id: string; _payment_method: string; _reference: string }
+        Returns: undefined
+      }
       place_order: {
         Args: { _items: Json; _shipping: string }
         Returns: string

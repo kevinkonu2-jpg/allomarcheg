@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CITIES, useStore } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
+import logo from "@/assets/allomarche-logo.png";
 
 export function SiteHeader() {
   const { city, setCity, cart, user, isAdmin } = useStore();
@@ -13,8 +14,9 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
       <div className="mx-auto grid min-h-[72px] max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 md:flex md:gap-4">
-        <Link to="/" aria-label="Allô Marché Global, accueil" className="flex min-h-12 min-w-0 flex-col justify-center font-display text-xl font-semibold leading-tight text-primary md:mr-auto md:shrink-0">
-          <span>Allô Marché</span><span className="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Global</span>
+        <Link to="/" aria-label="Allô Marché Global, accueil" className="flex min-h-12 min-w-0 items-center gap-2.5 font-display text-xl font-semibold leading-tight text-primary md:mr-auto md:shrink-0">
+          <img src={logo} alt="" width={1024} height={1024} className="size-10 shrink-0 object-contain md:size-11" />
+          <span className="flex min-w-0 flex-col justify-center"><span>Allô Marché</span><span className="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Global</span></span>
         </Link>
         <nav aria-label="Navigation principale" className="hidden shrink-0 items-center text-sm md:flex">
           <Button variant="ghost" asChild><Link to="/catalog" activeProps={{ className: "bg-secondary text-primary" }}>Catalogue</Link></Button>
