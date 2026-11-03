@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { act, render, waitFor } from "@testing-library/react";
 import { matchesCity, safeAffiliateUrl, validWithdrawal } from "@/lib/marketplace";
-import { checkoutSchema } from "@/lib/checkout";
+import { checkoutSchema, paymentSchema } from "@/lib/checkout";
+import { PAYMENT_METHODS, paymentMethodLabel, validPaymentMethod } from "@/lib/payments";
 import { StoreProvider, useStore } from "@/lib/store";
 
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { auth: { getUser: async () => ({ data: { user: null } }), onAuthStateChange: () => ({ data: { sub: null, subscription: { unsubscribe() {} } } }) } } }));
@@ -52,5 +53,27 @@ describe("Purchase boundaries", () => {
     expect(checkoutSchema.parse(input).items[0]).toEqual({ product_id: input.items[0]?.product_id, quantity: 2 });
     expect(checkoutSchema.safeParse({ ...input, items: [] }).success).toBe(false);
     expect(checkoutSchema.safeParse({ ...input, items: [{ ...input.items[0], quantity: 0 }] }).success).toBe(false);
+  });
+});
+
+describe("Mobile money payment methods", () => {
+  it("offers the five regional methods with their corridors", () => {
+    expect(PAYMENT_METHODS.map((m) => m.id)).toEqual(["tmoney", "wave", "mtn_momo", "airtel_money", "moncash"]);
+    expect(PAYMENT_METHODS.find((m) => m.id === "tmoney")?.region).toBe("Togo");
+    expect(PAYMENT_METHODS.find((m) => m.id === "moncash")?.region).toBe("Haïti");
+  });
+  it("accepts only known method identifiers", () => {
+    for (const m of PAYMENT_METHODS) expect(validPaymentMethod(m.id)).toBe(true);
+    for (const bad of ["card", "paypal", "", null, 42]) expect(validPaymentMethod(bad)).toBe(false);
+  });
+  it("validates payment confirmation input and rejects unknown methods", () => {
+    const ok = { orderId: "11111111-0000-4000-8000-000000000001", method: "wave", reference: "DEMO-123456" };
+    expect(paymentSchema.parse(ok).method).toBe("wave");
+    expect(paymentSchema.safeParse({ ...ok, method: "card" }).success).toBe(false);
+    expect(paymentSchema.safeParse({ ...ok, reference: "abc" }).success).toBe(false);
+  });
+  it("labels known methods and passes through unknown values", () => {
+    expect(paymentMethodLabel("moncash")).toBe("MonCash");
+    expect(paymentMethodLabel(null)).toBe("");
   });
 });
