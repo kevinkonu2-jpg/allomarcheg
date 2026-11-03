@@ -29,6 +29,13 @@
       "when": 1793500509859,
       "tag": "0003_pending_checkout_private_wallets",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793736008355,
+      "tag": "0004_local_mobile_money_payment_confirmation",
+      "breakpoints": true
     }
   ]
 }
