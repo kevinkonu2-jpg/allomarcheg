@@ -15,14 +15,14 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: Admin,
 });
 
-type Stats = { revenue: number; commissions: number; orders: number; pending_withdrawals: number };
+type Stats = { revenue: number; commissions: number; orders: number; pending_withdrawals: number; simulation_revenue: number; simulation_orders: number; simulation_earned: number };
 type WalletT = { admin_id: string; share_percent: number; total_earned: number; available_balance: number; withdrawn_amount: number };
 
 function Admin() {
   const { user, isAdmin } = useStore();
   const [stats, setStats] = useState<Stats | null>(null);
   const [wallets, setWallets] = useState<WalletT[]>([]);
-  const [orders, setOrders] = useState<{ id: string; total_amount: number; platform_commission: number; payment_status: string; created_at: string; shipping_address: string | null }[]>([]);
+  const [orders, setOrders] = useState<{ id: string; total_amount: number; platform_commission: number; payment_status: string; is_simulated: boolean; created_at: string; shipping_address: string | null }[]>([]);
   const [amount, setAmount] = useState("");
 
   const [busy, setBusy] = useState(false);
@@ -35,7 +35,7 @@ function Admin() {
     const [s, w, o, r] = await Promise.all([
       supabase.rpc("admin_stats"),
       supabase.from("admin_wallets").select("*").eq("admin_id", user.id),
-      supabase.from("orders").select("id,total_amount,platform_commission,payment_status,created_at,shipping_address").order("created_at", { ascending: false }).limit(10),
+       supabase.from("orders").select("id,total_amount,platform_commission,payment_status,is_simulated,created_at,shipping_address").order("created_at", { ascending: false }).limit(10),
       supabase.from("withdrawals").select("id,amount,status,created_at").eq("admin_id", user.id).order("created_at", { ascending: false }),
     ]);
     if (s.error || w.error || o.error || r.error) toast.error("Impossible de charger les données administrateur.");
@@ -134,6 +134,14 @@ function Admin() {
         </div>
       </div>
 
+      <section className="mt-10 border-t pt-6" aria-label="Finances simulées">
+        <h2 className="text-xl">Simulation · fonds non retirables</h2>
+        <dl className="mt-4 grid gap-4 sm:grid-cols-3">
+          <div><dt className="text-sm text-muted-foreground">Commandes simulées confirmées</dt><dd className="text-2xl font-semibold">{stats?.simulation_orders ?? 0}</dd></div>
+          <div><dt className="text-sm text-muted-foreground">Ventes simulées</dt><dd className="text-2xl font-semibold">{fmt(Number(stats?.simulation_revenue ?? 0))}</dd></div>
+          <div><dt className="text-sm text-muted-foreground">Ma part simulée</dt><dd className="text-2xl font-semibold">{fmt(Number(stats?.simulation_earned ?? 0))}</dd></div>
+        </dl>
+      </section>
       <section className="mt-10 border-t pt-6">
         <h2 className="text-xl">Accorder un accès administrateur</h2>
         <form onSubmit={promote} className="mt-4 flex max-w-2xl flex-col gap-4 sm:flex-row sm:items-end">
@@ -149,7 +157,7 @@ function Admin() {
         {!withdrawals.length && <p className="mt-3 text-sm text-muted-foreground">Aucune demande de retrait.</p>}
       </section>
       <div className="mt-10 border-t pt-6">
-        <h2 className="text-xl">Commandes récentes</h2>
+          <h2 className="text-xl">Commandes récentes</h2>
         <div className="mt-3 divide-y md:hidden">{orders.map((o) => <div key={o.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-4 text-sm"><div className="min-w-0"><p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("fr-FR")}</p><p className="mt-1 break-words">{o.shipping_address}</p><p className="mt-1 text-primary">{o.payment_status === "paid" ? "Payé" : "En attente"}</p></div><strong>{fmt(Number(o.total_amount))}</strong></div>)}</div>
         <div className="hidden md:block"><Table className="mt-3">
           <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Adresse de livraison</TableHead><TableHead>Total</TableHead><TableHead>Paiement</TableHead></TableRow></TableHeader>

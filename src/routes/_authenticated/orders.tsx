@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { LocalCheckout } from "@/components/LocalCheckout";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { fmt, useStore } from "@/lib/store";
@@ -10,16 +12,21 @@ export const Route = createFileRoute("/_authenticated/orders")({
   component: Orders,
 });
 
-type Order = { id: string; total_amount: number; payment_status: string; payment_provider: string | null; shipping_address: string | null; created_at: string; items: { title: string; quantity: number }[] };
+type Order = { id: string; total_amount: number; payment_status: string; is_simulated: boolean; payment_provider: string | null; shipping_address: string | null; created_at: string; items: { title: string; quantity: number }[] };
 
 function Orders() {
-  const { user } = useStore();
+  const { user, city } = useStore();
   const [orders, setOrders] = useState<Order[]>([]);
-  useEffect(() => {
+  const [pending, setPending] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+  const load = useCallback(async () => {
     if (!user) return;
-    supabase.from("orders").select("*").eq("client_id", user.id).order("created_at", { ascending: false })
-      .then(({ data }) => setOrders((data as unknown as Order[]) ?? []));
+    const { data, error } = await supabase.from("orders").select("*").eq("client_id", user.id).order("created_at", { ascending: false });
+    setFailed(Boolean(error)); setLoading(false);
+    if (!error) setOrders((data as unknown as Order[]) ?? []);
   }, [user]);
+  useEffect(() => { void load(); }, [load]);
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 md:py-10">
       <h1 className="font-sans text-2xl font-bold md:text-4xl">Mes commandes</h1>
@@ -28,14 +35,16 @@ function Orders() {
           <div key={o.id} className="rounded-lg border bg-card p-4 sm:p-5">
             <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-sm text-muted-foreground">{new Date(o.created_at).toLocaleString("fr-FR")}</span>
-              <Badge className="whitespace-normal">{o.payment_status === "paid" ? `Payée · ${paymentMethodLabel(o.payment_provider)}` : o.payment_status === "pending" ? "En attente de paiement" : o.payment_status}</Badge>
+              <Badge className="whitespace-normal">{o.payment_status === "paid" ? `Payée - ${paymentMethodLabel(o.payment_provider)}${o.is_simulated ? ' · Simulation' : ''}` : o.payment_status === "pending" ? "En attente de paiement" : o.payment_status}</Badge>
             </div>
             <p className="mt-2 break-words">{o.items.map((i) => `${i.quantity}× ${i.title}`).join(", ")}</p>
             <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-3 text-sm"><span className="min-w-0 break-words text-muted-foreground">{o.shipping_address}</span><strong className="shrink-0">{fmt(Number(o.total_amount))}</strong></div>
+            {o.payment_status === "pending" && <Button className="mt-4 w-full sm:w-auto" variant="outline" onClick={() => setPending(o)}>Reprendre le paiement</Button>}
           </div>
         ))}
-        {orders.length === 0 && <p className="text-muted-foreground">Vous n’avez pas encore de commande.</p>}
+        {loading ? <p className="text-muted-foreground">Chargement…</p> : failed ? <Button variant="outline" onClick={() => { void load(); }}>Réessayer</Button> : orders.length === 0 && <p className="text-muted-foreground">Vous n’avez pas encore de commande.</p>}
       </div>
+      {pending && <LocalCheckout key={pending.id} open onOpenChange={(v) => { if (!v) setPending(null); }} city={city} total={Number(pending.total_amount)} pendingOrder={{ id: pending.id, total: Number(pending.total_amount) }} onPaid={() => { setPending(null); void load(); }} />}
     </div>
   );
 }
