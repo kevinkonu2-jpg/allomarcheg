@@ -108,8 +108,11 @@ export type Database = {
         Row: {
           client_id: string
           created_at: string
+          delivery_details: Json | null
           id: string
+          is_simulated: boolean
           items: Json
+          payment_account_phone: string | null
           payment_provider: string | null
           payment_reference: string | null
           payment_status: string
@@ -120,8 +123,11 @@ export type Database = {
         Insert: {
           client_id: string
           created_at?: string
+          delivery_details?: Json | null
           id?: string
+          is_simulated?: boolean
           items?: Json
+          payment_account_phone?: string | null
           payment_provider?: string | null
           payment_reference?: string | null
           payment_status?: string
@@ -132,8 +138,11 @@ export type Database = {
         Update: {
           client_id?: string
           created_at?: string
+          delivery_details?: Json | null
           id?: string
+          is_simulated?: boolean
           items?: Json
+          payment_account_phone?: string | null
           payment_provider?: string | null
           payment_reference?: string | null
           payment_status?: string
@@ -337,6 +346,19 @@ export type Database = {
         Returns: string
       }
       request_withdrawal: { Args: { _amount: number }; Returns: undefined }
+      simulate_order_payment: {
+        Args: {
+          _confirmed: boolean
+          _method: string
+          _order_id: string
+          _phone: string
+        }
+        Returns: undefined
+      }
+      submit_delivery_order: {
+        Args: { _catalog_city: string; _delivery: Json; _items: Json }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "client" | "vendor" | "admin"
