@@ -1,5 +1,6 @@
 export const PAYMENT_METHODS = [
-  { id: "tmoney", label: "T-Money (Moov/Flooz)", region: "Togo" },
+  { id: "tmoney", label: "T-Money", region: "Togo" },
+  { id: "flooz", label: "Flooz / Moov", region: "Togo" },
   { id: "wave", label: "Wave", region: "Afrique de l’Ouest" },
   { id: "mtn_momo", label: "MTN Mobile Money", region: "Afrique de l’Ouest" },
   { id: "airtel_money", label: "Airtel Money", region: "Afrique de l’Ouest" },

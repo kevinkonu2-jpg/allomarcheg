@@ -1,12 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
-import { toast } from "sonner";
-import { Minus, Plus, Smartphone } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { confirmLocalPayment, submitLocalOrder } from "@/lib/checkout.functions";
-import { PAYMENT_METHODS, paymentMethodLabel, type PaymentMethodId } from "@/lib/payments";
+import { LocalCheckout } from "@/components/LocalCheckout";
 import { fmt, useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/cart")({
@@ -23,29 +19,9 @@ export const Route = createFileRoute("/cart")({
 
 function Cart() {
   const { cart, updateQty, clearCart, user, city } = useStore();
-  const [address, setAddress] = useState("");
-  const [method, setMethod] = useState<PaymentMethodId>("wave");
-  const [busy, setBusy] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const navigate = useNavigate();
-  const submitOrder = useServerFn(submitLocalOrder);
-  const confirmPayment = useServerFn(confirmLocalPayment);
   const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-
-  const checkout = async () => {
-    if (!user) return navigate({ to: "/auth" });
-    if (!address.trim()) return toast.error("Veuillez renseigner une adresse de livraison");
-    setBusy(true);
-    try {
-      const order = await submitOrder({ data: { items: cart.map((i) => ({ product_id: i.product_id, quantity: i.quantity })), shipping: `${address.trim()}, ${city}` } });
-      await confirmPayment({ data: { orderId: order.orderId, method, reference: `DEMO-${crypto.randomUUID()}` } });
-      clearCart();
-      toast.success(`Paiement confirmé via ${paymentMethodLabel(method)}`);
-      await navigate({ to: "/orders" });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Impossible d’enregistrer la commande.");
-    } finally { setBusy(false); }
-    return undefined;
-  };
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 md:py-10">
@@ -69,30 +45,15 @@ function Cart() {
             ))}
           </ul>
           <div className="mt-6 space-y-3">
-            <Textarea value={address} onChange={(e) => setAddress(e.target.value)} placeholder={`Adresse de livraison à ${city}`} />
-            <fieldset>
-              <legend className="flex items-center gap-2 text-sm font-semibold"><Smartphone className="size-4 text-primary" />Moyen de paiement mobile</legend>
-              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Moyen de paiement mobile">
-                {PAYMENT_METHODS.map((m) => {
-                  const selected = method === m.id;
-                  return (
-                    <button key={m.id} type="button" role="radio" aria-checked={selected} onClick={() => setMethod(m.id)}
-                      className={`flex min-h-12 min-w-0 items-center justify-between gap-2 rounded-lg border px-4 py-3 text-left text-sm transition-colors ${selected ? "border-primary bg-secondary font-semibold" : "bg-card hover:bg-secondary/60"}`}>
-                      <span className="min-w-0 break-words">{m.label}</span>
-                      <span className="shrink-0 text-xs text-muted-foreground">{m.region}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </fieldset>
             <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
               <span className="text-lg">Total <strong>{fmt(total)}</strong></span>
-              <Button variant="accent" size="lg" className="w-full whitespace-normal sm:w-auto" disabled={busy} onClick={checkout}>{busy ? "Paiement en cours…" : user ? `Payer avec ${paymentMethodLabel(method)}` : "Se connecter pour commander"}</Button>
+              <Button variant="accent" size="lg" className="w-full whitespace-normal sm:w-auto" onClick={() => { if (user) setCheckoutOpen(true); else void navigate({ to: "/auth" }); }}>{user ? "Passer la commande" : "Se connecter pour commander"}</Button>
             </div>
-            <p className="text-xs text-muted-foreground">Paiement mobile money simulé pour la démonstration : aucun montant réel n’est débité.</p>
+            <p className="text-xs text-muted-foreground">Paiement mobile money simulé : aucun montant réel n’est débité.</p>
           </div>
         </>
       )}
+      {checkoutOpen && <LocalCheckout open={checkoutOpen} onOpenChange={setCheckoutOpen} city={city} total={total} items={cart.map((i) => ({ product_id: i.product_id, quantity: i.quantity }))} onCreated={clearCart} onPaid={() => { void navigate({ to: "/orders" }); }} />}
     </div>
   );
 }

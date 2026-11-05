@@ -1,5 +1,5 @@
-# Christmas marketplace enhancement
-- [x] Generate and integrate the Allô Marché Global logo in the header and favicon.
-- [x] Add selectable mobile money methods (T-Money, Wave, MTN MoMo, Airtel Money, MonCash) to local checkout.
-- [x] Settle pending orders through the pay_order RPC so confirmed payments credit admin wallets.
-- [x] Verify checkout with payment selection, wallet credit and mobile layout in the preview.
+# Checkout correction
+- [ ] Purge identified demo transactions and restore genuine financial balances.
+- [ ] Implement validated delivery, provider, account phone and explicit simulated confirmation steps; support pending-order retry.
+- [ ] Isolate simulated totals from real withdrawable revenue and balances.
+- [ ] Verify rules and complete mobile checkout, cancellation and retry flows.

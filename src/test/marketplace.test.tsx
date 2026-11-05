@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { act, render, waitFor } from "@testing-library/react";
 import { matchesCity, safeAffiliateUrl, validWithdrawal } from "@/lib/marketplace";
-import { checkoutSchema, paymentSchema } from "@/lib/checkout";
+import { checkoutSchema, paymentSchema, deliverySchema, eligibleDeliveryCity, phoneSchema } from "@/lib/checkout";
 import { PAYMENT_METHODS, paymentMethodLabel, validPaymentMethod } from "@/lib/payments";
 import { StoreProvider, useStore } from "@/lib/store";
 
@@ -57,8 +57,8 @@ describe("Purchase boundaries", () => {
 });
 
 describe("Mobile money payment methods", () => {
-  it("offers the five regional methods with their corridors", () => {
-    expect(PAYMENT_METHODS.map((m) => m.id)).toEqual(["tmoney", "wave", "mtn_momo", "airtel_money", "moncash"]);
+  it("offers six regional methods, with separate T-Money and Flooz", () => {
+    expect(PAYMENT_METHODS.map((m) => m.id)).toEqual(["tmoney", "flooz", "wave", "mtn_momo", "airtel_money", "moncash"]);
     expect(PAYMENT_METHODS.find((m) => m.id === "tmoney")?.region).toBe("Togo");
     expect(PAYMENT_METHODS.find((m) => m.id === "moncash")?.region).toBe("Haïti");
   });
@@ -67,13 +67,32 @@ describe("Mobile money payment methods", () => {
     for (const bad of ["card", "paypal", "", null, 42]) expect(validPaymentMethod(bad)).toBe(false);
   });
   it("validates payment confirmation input and rejects unknown methods", () => {
-    const ok = { orderId: "11111111-0000-4000-8000-000000000001", method: "wave", reference: "DEMO-123456" };
+    const ok = { orderId: "11111111-0000-4000-8000-000000000001", method: "wave", accountPhone: "+22890000000", confirmed: true };
     expect(paymentSchema.parse(ok).method).toBe("wave");
     expect(paymentSchema.safeParse({ ...ok, method: "card" }).success).toBe(false);
-    expect(paymentSchema.safeParse({ ...ok, reference: "abc" }).success).toBe(false);
+    expect(paymentSchema.safeParse({ ...ok, confirmed: false }).success).toBe(false);
+    expect(paymentSchema.safeParse({ ...ok, confirmed: undefined }).success).toBe(false);
+    expect(paymentSchema.safeParse({ ...ok, accountPhone: "1234" }).success).toBe(false);
   });
   it("labels known methods and passes through unknown values", () => {
     expect(paymentMethodLabel("moncash")).toBe("MonCash");
     expect(paymentMethodLabel(null)).toBe("");
+  });
+});
+
+describe("Mandatory delivery", () => {
+  const delivery = { fullName: "Client Test", city: "Tsévié", address: "Quartier central", phone: "+228 90 00 00 00" };
+  it("requires full name, address and delivery phone", () => {
+    expect(deliverySchema.parse(delivery).phone).toBe("+22890000000");
+    for (const key of ["fullName", "address", "phone"] as const) expect(deliverySchema.safeParse({ ...delivery, [key]: "" }).success).toBe(false);
+  });
+  it("supports Lomé and Tsévié for Togo, without crossing other catalog cities", () => {
+    expect(eligibleDeliveryCity("Lomé", "Tsévié")).toBe(true);
+    expect(eligibleDeliveryCity("Lomé", "Lomé")).toBe(true);
+    expect(eligibleDeliveryCity("Lomé", "Boston")).toBe(false);
+    expect(eligibleDeliveryCity("Paris", "Tsévié")).toBe(false);
+  });
+  it("rejects PIN-sized or malformed account numbers", () => {
+    for (const value of ["1234", "secret", "0000000000000000"]) expect(phoneSchema.safeParse(value).success).toBe(false);
   });
 });

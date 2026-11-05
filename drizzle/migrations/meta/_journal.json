@@ -36,6 +36,13 @@
       "when": 1793736008355,
       "tag": "0004_local_mobile_money_payment_confirmation",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793861294081,
+      "tag": "0005_isolate_simulation_and_delivery_checkout",
+      "breakpoints": true
     }
   ]
 }
