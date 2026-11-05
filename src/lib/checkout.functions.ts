@@ -8,7 +8,9 @@ export const submitLocalOrder = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<PendingCheckout> => {
     const result = await context.supabase.rpc("submit_delivery_order", { _items: data.items, _catalog_city: data.catalogCity, _delivery: data.delivery });
     if (result.error || !result.data) throw new Error("Impossible d’enregistrer cette commande. Vérifiez les articles et la ville de livraison.");
-    return { orderId: result.data, paymentStatus: "pending" };
+    const order = await context.supabase.from("orders").select("total_amount").eq("id", result.data).single();
+    if (order.error || !order.data) throw new Error("Commande créée. Retrouvez-la dans Mes commandes pour reprendre le paiement.");
+    return { orderId: result.data, paymentStatus: "pending", total: Number(order.data.total_amount) };
   });
 
 export const confirmLocalPayment = createServerFn({ method: "POST" })

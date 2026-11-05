@@ -21,7 +21,7 @@ export type CheckoutInput = z.infer<typeof checkoutSchema>;
 export const localCheckoutSchema = z.object({ items: checkoutSchema.shape.items, catalogCity: z.enum(["Paris", "Boston", "Lomé"]), delivery: deliverySchema }).refine((d) => eligibleDeliveryCity(d.catalogCity, d.delivery.city), "Ville de livraison non desservie.");
 
 // A future gateway starts payment against this pending order, never a browser total.
-export type PendingCheckout = { orderId: string; paymentStatus: "pending" };
+export type PendingCheckout = { orderId: string; paymentStatus: "pending"; total: number };
 
 export const paymentSchema = z.object({
   orderId: z.string().uuid(),

@@ -45,7 +45,7 @@ export function LocalCheckout({ open, onOpenChange, city, total, items, pendingO
         setAccountPhone(parsed.data);
         if (!order) {
           const result = await create({ data: { items: items ?? [], catalogCity: city, delivery } });
-          setOrder({ id: result.orderId, total }); onCreated?.();
+          setOrder({ id: result.orderId, total: result.total }); onCreated?.();
         }
         setStep(3);
       } catch (e) { setError(e instanceof Error ? e.message : "Impossible de créer la commande."); }
