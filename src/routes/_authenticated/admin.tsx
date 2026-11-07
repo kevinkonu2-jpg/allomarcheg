@@ -162,7 +162,7 @@ function Admin() {
         <div className="hidden md:block"><Table className="mt-3">
           <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Adresse de livraison</TableHead><TableHead>Total</TableHead><TableHead>Paiement</TableHead></TableRow></TableHeader>
           <TableBody>
-            {orders.map((o) => (
+      {orders.map((o) => (
               <TableRow key={o.id}>
                 <TableCell>{new Date(o.created_at).toLocaleDateString("fr-FR")}</TableCell>
                 <TableCell>{o.shipping_address}</TableCell>
