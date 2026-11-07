@@ -158,16 +158,16 @@ function Admin() {
       </section>
       <div className="mt-10 border-t pt-6">
           <h2 className="text-xl">Commandes récentes</h2>
-        <div className="mt-3 divide-y md:hidden">{orders.map((o) => <div key={o.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-4 text-sm"><div className="min-w-0"><p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("fr-FR")}</p><p className="mt-1 break-words">{o.shipping_address}</p><p className="mt-1 text-primary">{o.payment_status === "paid" ? "Payé" : "En attente"}</p></div><strong>{fmt(Number(o.total_amount))}</strong></div>)}</div>
+        <div className="mt-3 divide-y md:hidden">{orders.map((o) => <div key={o.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-4 text-sm"><div className="min-w-0"><p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("fr-FR")}</p><p className="mt-1 break-words">{o.shipping_address}</p><p className="mt-1 text-primary">{o.payment_status === "paid" ? (o.is_simulated ? "Payé · Simulation" : "Payé") : "En attente"}</p></div><strong>{fmt(Number(o.total_amount))}</strong></div>)}</div>
         <div className="hidden md:block"><Table className="mt-3">
           <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Adresse de livraison</TableHead><TableHead>Total</TableHead><TableHead>Paiement</TableHead></TableRow></TableHeader>
           <TableBody>
-            {orders.map((o) => (
+      {orders.map((o) => (
               <TableRow key={o.id}>
                 <TableCell>{new Date(o.created_at).toLocaleDateString("fr-FR")}</TableCell>
                 <TableCell>{o.shipping_address}</TableCell>
                 <TableCell>{fmt(Number(o.total_amount))}</TableCell>
-                <TableCell>{o.payment_status === "paid" ? "Payé" : "En attente"}</TableCell>
+                <TableCell>{o.payment_status === "paid" ? (o.is_simulated ? "Payé · Simulation" : "Payé") : "En attente"}</TableCell>
               </TableRow>
             ))}
           </TableBody>
