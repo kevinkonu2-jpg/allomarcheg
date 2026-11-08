@@ -1,0 +1,2 @@
+GRANT EXECUTE ON FUNCTION public.has_role(uuid,public.app_role) TO anon;
+COMMENT ON FUNCTION public.has_role(uuid,public.app_role) IS 'Anonymous catalog policies may evaluate this predicate, but anonymous callers cannot discover any role. Only self, authenticated admins and trusted services may inspect roles.';

@@ -24,7 +24,7 @@ describe("Admin identity isolation", () => {
     await act(async () => { auth.listener?.("SIGNED_IN", { user: { id: "admin-account" } }); });
     await waitFor(() => expect(auth.resolveRole).toBeDefined());
     await act(async () => { auth.listener?.("SIGNED_OUT", null); });
-    await act(async () => { auth.resolveRole?.({ data: [{ role: "admin" }] }); });
+    await act(async () => { auth.resolveRole?.({ data: true, error: null }); });
     expect(store?.user).toBeNull();
     expect(store?.isAdmin).toBe(false);
     view.unmount();

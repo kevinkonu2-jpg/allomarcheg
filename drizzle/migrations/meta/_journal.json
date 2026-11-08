@@ -50,6 +50,13 @@
       "when": 1794132237656,
       "tag": "0006_restrict_role_discovery",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794132262705,
+      "tag": "0007_preserve_public_catalog_role_predicates",
+      "breakpoints": true
     }
   ]
 }

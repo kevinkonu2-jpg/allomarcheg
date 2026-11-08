@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useStore } from "@/lib/store";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -27,6 +28,7 @@ function Auth() {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +48,7 @@ function Auth() {
     return undefined;
   };
 
-  if (user) return <div className="mx-auto max-w-md px-4 py-6 md:py-16"><h1 className="font-sans text-2xl font-bold">Mon compte</h1><p className="mt-4 break-words text-muted-foreground">{user.email}</p><div className="mt-6 grid gap-3"><Button onClick={() => navigate({ to: "/orders" })}>Mes commandes</Button>{isAdmin && <Button variant="secondary" onClick={() => navigate({ to: "/admin" })}>Espace admin</Button>}<Button variant="outline" onClick={async () => { await supabase.auth.signOut(); await navigate({ to: "/" }); }}>Se déconnecter</Button></div></div>;
+  if (user) return <div className="mx-auto max-w-md px-4 py-6 md:py-16"><h1 className="font-sans text-2xl font-bold">Mon compte</h1><p className="mt-4 break-words text-muted-foreground">{user.email}</p><div className="mt-6 grid gap-3"><Button onClick={() => navigate({ to: "/orders" })}>Mes commandes</Button>{isAdmin && <Button variant="secondary" onClick={() => navigate({ to: "/admin" })}>Espace admin</Button>}<Button variant="outline" onClick={async () => { await queryClient.cancelQueries(); queryClient.clear(); await supabase.auth.signOut(); await navigate({ to: "/auth", replace: true }); }}>Se déconnecter</Button></div></div>;
   return (
     <div className="mx-auto flex max-w-md flex-col px-4 py-6 md:py-16">
       <h1 className="font-sans text-2xl font-bold">{mode === "in" ? "Connexion" : "Créer un compte"}</h1>
