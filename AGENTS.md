@@ -20,3 +20,6 @@
 - Keep the store context in store-context.ts and preserve its identity during hot updates so mounted providers and refreshed consumers cannot diverge.
 - Keep the shared product catalog in ProductCatalog for home and /catalog; mount mobile navigation once in the root with safe-area clearance so every screen shares consistent navigation.
 - Present financial histories as mobile lists and desktop tables, while retaining a single data source and unchanged financial permissions.
+- Authorize the admin route through an authenticated server function and database role predicate; ignore stale identity lookups and reset UI privileges before every lookup to prevent cross-account leakage.
+- Gate the root before mounting database consumers when public browser configuration is invalid; never modify generated clients or substitute private server keys.
+- Read simulated payment state back under the caller's ownership before reporting success so UI confirmation matches durable records.

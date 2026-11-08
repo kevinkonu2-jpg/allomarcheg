@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Banknote, ShoppingCart, Wallet } from "lucide-react";
@@ -9,8 +9,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { validWithdrawal } from "@/lib/marketplace";
 import { Label } from "@/components/ui/label";
 import { fmt, useStore } from "@/lib/store";
+import { checkAdminAccess } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
+  beforeLoad: async () => {
+    if (!(await checkAdminAccess())) throw redirect({ to: "/auth", replace: true });
+  },
   head: () => ({ meta: [{ title: "Espace admin — Allô Marché Global" }, { name: "description", content: "Ventes, commissions et portefeuilles administrateurs." }, { property: "og:title", content: "Espace admin — Allô Marché Global" }, { property: "og:description", content: "Ventes, commissions et portefeuilles administrateurs." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }),
   component: Admin,
 });
@@ -31,7 +35,7 @@ function Admin() {
   const [withdrawals, setWithdrawals] = useState<{ id: string; amount: number; status: string; created_at: string }[]>([]);
 
   const load = useCallback(async () => {
-    if (!user) return;
+    if (!user || !isAdmin) return;
     const [s, w, o, r] = await Promise.all([
       supabase.rpc("admin_stats"),
       supabase.from("admin_wallets").select("*").eq("admin_id", user.id),
@@ -43,7 +47,7 @@ function Admin() {
     if (s.data) setStats(s.data as unknown as Stats);
     setWallets((w.data as WalletT[]) ?? []);
     setOrders(o.data ?? []);
-  }, [user]);
+  }, [user, isAdmin]);
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, load]);
 
   if (!isAdmin) return <div className="mx-auto max-w-xl px-4 py-20 text-center"><h1 className="text-3xl">Accès réservé aux administrateurs</h1><p className="mt-2 text-muted-foreground">Votre compte ne dispose pas des droits administrateur.</p></div>;

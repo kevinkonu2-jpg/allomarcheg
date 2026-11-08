@@ -16,6 +16,8 @@ import { StoreProvider } from "@/lib/store";
 import { SiteHeader } from "@/components/SiteHeader";
 import { MobileNavigation } from "@/components/MobileNavigation";
 import { Toaster } from "@/components/ui/sonner";
+import { hasPublicConnection } from "@/lib/connection-config";
+import { Button } from "@/components/ui/button";
 
 function NotFoundComponent() {
   return (
@@ -119,6 +121,8 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  if (!hasPublicConnection()) return <main className="mx-auto max-w-lg px-4 py-16"><h1 className="text-2xl">Allô Marché Global</h1><p role="alert" className="mt-4 text-muted-foreground">Le service est temporairement indisponible. Réessayez dans quelques instants.</p><Button className="mt-6" onClick={() => window.location.reload()}>Réessayer</Button></main>;
 
   return (
     <QueryClientProvider client={queryClient}>

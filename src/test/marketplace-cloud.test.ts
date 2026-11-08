@@ -28,6 +28,24 @@ describe.skipIf(!url || !key || !token || !userId)("Live marketplace rules", () 
   it("does not allow anonymous users to grant administrator access", async () => {
     expect((await request("rpc/grant_admin", { _email: "nobody@example.test", _share: 0 }, false)).ok).toBe(false);
   });
+  it("does not expose administrator metrics anonymously", async () => {
+    expect((await request("rpc/admin_stats", {}, false)).ok).toBe(false);
+  });
+  it("records each of the six confirmed simulation providers without crediting wallets", async () => {
+    const walletPath = "admin_wallets?select=total_earned,available_balance,withdrawn_amount";
+    const before = await (await request(walletPath)).json();
+    const products = await (await request("products?select=id&is_amazon_affiliate=eq.false&city_target=eq.Paris&limit=1")).json();
+    for (const method of ["tmoney", "flooz", "wave", "mtn_momo", "airtel_money", "moncash"]) {
+      const created = await request("rpc/place_order", { _items: [{ product_id: products[0].id, quantity: 1 }], _shipping: "Vérification sécurité automatique 20261108, Paris" });
+      expect(created.ok).toBe(true);
+      const id = await created.json();
+      const input = { _order_id: id, _method: method, _phone: "+22890000000", _confirmed: true };
+      expect((await request("rpc/simulate_order_payment", input)).ok).toBe(true);
+      expect((await request("rpc/simulate_order_payment", input)).ok).toBe(true);
+      expect(await (await request(`orders?select=payment_status,is_simulated,payment_provider&id=eq.${id}`)).json()).toEqual([{ payment_status: "paid", is_simulated: true, payment_provider: method }]);
+    }
+    expect(await (await request(walletPath)).json()).toEqual(before);
+  });
   it("rejects a basket mixing Paris and Boston", async () => {
     const products = await (await request("products?select=id,city_target&is_amazon_affiliate=eq.false")).json() as { id: string; city_target: string }[];
     const paris = products.find((p) => p.city_target === "Paris");

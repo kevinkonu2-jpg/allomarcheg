@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CITIES, useStore } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import logo from "@/assets/allomarche-logo.png";
 
 export function SiteHeader() {
   const { city, setCity, cart, user, isAdmin } = useStore();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const count = cart.reduce((s, i) => s + i.quantity, 0);
 
   return (
@@ -43,7 +45,7 @@ export function SiteHeader() {
           {user ? (
             <div className="hidden items-center gap-1 md:flex">
               <Button variant="secondary" size="icon" asChild><Link to={isAdmin ? "/admin" : "/auth"} aria-label={isAdmin ? "Espace admin" : "Mon compte"} title={isAdmin ? "Espace admin" : "Mon compte"}>{isAdmin ? <LayoutDashboard /> : <UserRound />}</Link></Button>
-              <Button variant="ghost" size="icon" aria-label="Se déconnecter" title="Se déconnecter" onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/", replace: true }); }}><LogOut /></Button>
+              <Button variant="ghost" size="icon" aria-label="Se déconnecter" title="Se déconnecter" onClick={async () => { await queryClient.cancelQueries(); queryClient.clear(); await supabase.auth.signOut(); await navigate({ to: "/auth", replace: true }); }}><LogOut /></Button>
             </div>
           ) : (
             <Button size="icon" asChild className="hidden md:inline-flex"><Link to="/auth" aria-label="Mon compte" title="Mon compte"><UserRound /></Link></Button>

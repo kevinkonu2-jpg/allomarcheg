@@ -19,5 +19,9 @@ export const confirmLocalPayment = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const result = await context.supabase.rpc("simulate_order_payment", { _order_id: data.orderId, _method: data.method, _phone: data.accountPhone, _confirmed: data.confirmed });
     if (result.error) throw new Error("Le paiement n’a pas pu être confirmé. Votre commande reste en attente.");
+    const order = await context.supabase.from("orders").select("payment_status,is_simulated,payment_provider,payment_account_phone").eq("id", data.orderId).eq("client_id", context.userId).single();
+    if (order.error || order.data?.payment_status !== "paid" || !order.data.is_simulated || order.data.payment_provider !== data.method || order.data.payment_account_phone !== data.accountPhone) {
+      throw new Error("Confirmation non vérifiée. Retrouvez la commande dans Mes commandes et réessayez.");
+    }
     return { orderId: data.orderId, paymentStatus: "paid" as const };
   });
