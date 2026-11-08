@@ -5,7 +5,7 @@
 - [x] Verify rules and complete mobile checkout, cancellation and retry flows.
 
 # Security isolation
-- [ ] Fail safely when public connection settings are unavailable, without exposing secrets.
-- [ ] Gate admin navigation and route with database roles; prevent stale privileges after account changes.
-- [ ] Confirm all six simulated payments read back as paid without crediting real wallets.
-- [ ] Verify customer isolation and authenticated mobile checkout.
+- [x] Fail safely when public connection settings are unavailable, without exposing secrets.
+- [x] Gate admin navigation and route with database roles; prevent stale privileges after account changes.
+- [x] Confirm all six simulated payments read back as paid without crediting real wallets.
+- [x] Verify customer isolation and authenticated mobile checkout.
