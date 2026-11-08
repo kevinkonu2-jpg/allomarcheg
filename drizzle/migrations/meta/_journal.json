@@ -43,6 +43,13 @@
       "when": 1793861294081,
       "tag": "0005_isolate_simulation_and_delivery_checkout",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794132237656,
+      "tag": "0006_restrict_role_discovery",
+      "breakpoints": true
     }
   ]
 }

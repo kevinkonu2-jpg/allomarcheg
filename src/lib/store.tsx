@@ -31,18 +31,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [cart, restored]);
 
   useEffect(() => {
+    let revision = 0;
+    let disposed = false;
     const load = async (u: User | null) => {
+      const current = ++revision;
       setUser(u);
-      if (!u) return setIsAdmin(false);
-      const { data } = await supabase.from("user_roles").select("role").eq("user_id", u.id);
-      setIsAdmin(!!data?.some((r) => r.role === "admin"));
+      setIsAdmin(false);
+      if (!u) return;
+      try {
+        const { data, error } = await supabase.rpc("has_role", { _user_id: u.id, _role: "admin" });
+        if (!disposed && current === revision) setIsAdmin(!error && data === true);
+      } catch { /* Unknown privileges must stay denied. */ }
     };
-    supabase.auth.getUser().then(({ data }) => load(data.user));
+    const initial = revision;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!disposed && revision === initial) void load(data.user);
+    }).catch(() => { if (!disposed && revision === initial) void load(null); });
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED")
-        load(session?.user ?? null);
+        void load(session?.user ?? null);
     });
-    return () => sub.subscription.unsubscribe();
+    return () => { disposed = true; revision++; sub.subscription.unsubscribe(); };
   }, []);
 
   const setCity = (c: string) => {
