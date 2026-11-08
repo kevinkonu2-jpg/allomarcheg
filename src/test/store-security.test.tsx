@@ -16,6 +16,19 @@ vi.mock("@/integrations/supabase/client", () => ({ supabase: {
 } }));
 
 describe("Admin identity isolation", () => {
+  it("grants navigation privileges only for a successful true database predicate", async () => {
+    let store: ReturnType<typeof useStore> | undefined;
+    function Probe() { store = useStore(); return null; }
+    const view = render(<StoreProvider><Probe /></StoreProvider>);
+    await act(async () => { auth.listener?.("SIGNED_IN", { user: { id: "admin-account" } }); });
+    await act(async () => { auth.resolveRole?.({ data: true, error: null }); });
+    expect(store?.isAdmin).toBe(true);
+    await act(async () => { auth.listener?.("SIGNED_IN", { user: { id: "customer-account" } }); });
+    expect(store?.isAdmin).toBe(false);
+    await act(async () => { auth.resolveRole?.({ data: true, error: { message: "denied" } }); });
+    expect(store?.isAdmin).toBe(false);
+    view.unmount();
+  });
   it("ignores an old admin role response after sign out", async () => {
     let store: ReturnType<typeof useStore> | undefined;
     function Probe() { store = useStore(); return null; }
